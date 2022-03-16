@@ -6,10 +6,10 @@ namespace TestProject
 {
     public class ActivityStatutHub : Hub
     {
-        public async Task SendMessage(ActivityStatut message)
+       /* public async Task SendToAll(string user, string message)
         {
-            await Clients.All.SendAsync("ReceiveMessage", message);
-        }
+            await Clients.All.SendAsync("ReceiveMessage", user, message);
+        }*/
 
     }
 }

@@ -81,7 +81,7 @@ namespace TestProject
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
                 
-                endpoints.MapHub<ActivityStatutHub>("/api/ChangeStatut");
+                endpoints.MapHub<ActivityStatutHub>("users/api/ChangeStatut");
                 endpoints.MapRazorPages();
             });
 

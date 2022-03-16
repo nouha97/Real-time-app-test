@@ -18,7 +18,7 @@ namespace TestProject.Data
         {
         }
       
-        public DbSet<Element> Elements { get; set; }
+       
 
     }
 }
