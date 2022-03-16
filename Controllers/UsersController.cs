@@ -39,20 +39,23 @@ namespace TestProject.Controllers
 
         public async Task SendToAll([FromBody] ActivityStatut a)
         {
-            Debug.WriteLine("rrrrrdefzg" + a.ActivityS + "eeee");
-            await _messageHub.Clients.All.SendAsync("ReceiveMessage", a.ActivityS, a.ActivityS);
+            saveStatus(a.ID, a.ActivityS);
+            await _messageHub.Clients.All.SendAsync("ReceiveMessage", a.ActivityS, a.ID);
         }
        
-       /* [HttpPost]
-        [Route("api/ChangeStatut")]
-        public async Task<IActionResult> Create(ActivityStatut messagePost)
-            {
+       public void saveStatus(string id,string activity)
+        {
+            var user = db.Users.FirstOrDefault(item => item.Id == id);
 
-                await _messageHub.Clients.All.SendAsync("sendToReact", "The message '" +
-                messagePost.ActivityS + "' has been received");
-                return Ok();
+           
+            if (user != null)
+            {
+                
+                user.Activity = activity;
+
+                db.SaveChanges();
             }
-        */
+        }
 
         [HttpGet]
 

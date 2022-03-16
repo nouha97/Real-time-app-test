@@ -10,25 +10,22 @@ export class FetchData extends Component {
             allusers: [],
             loading: true,
             iduser : '',
-            nick: '',
+           newStatut : false,
             message: '',
-            messages: [],
+           
+            idSocket :'',
+            newActivity : '',
             hubConnection: null,
         };
     }
-    sendMessage = async () => {
-
-        const chatMessage = {
-            user: 'nuu',
-            message: 'ff'
-        };
+    sendMessage = async (activity) => {
         const token = await authService.getAccessToken();
         try {
             await fetch('https://localhost:44347/users/api/ChangeStatut', {
                 method: 'POST',
                 body: JSON.stringify({
-                    ActivityS: "ON CALL",
-                    ID: 'ff'
+                    ActivityS: activity,
+                    ID: this.state.iduser
                     }),
                 headers:
                     !token ? {} : {
@@ -37,15 +34,19 @@ export class FetchData extends Component {
                     },
             }
 
-            );
+            ).then(() => {
+                this.usersData();
+            });
         }
         catch (e) {
             console.log('Sending message failed.', e);
         }
     }
+   
+
     componentDidMount = () => {
         this.usersData();
-        const nick = window.prompt('Your name:', 'John');
+    
 
         const hubConnection = new HubConnectionBuilder()
             .withUrl('https://localhost:44347/users/api/ChangeStatut')
@@ -53,17 +54,14 @@ export class FetchData extends Component {
             .build();
 
 
-        this.setState({ hubConnection, nick }, () => {
+        this.setState({ hubConnection }, () => {
             this.state.hubConnection
                 .start()
                 .then(() => console.log('Connection started!'))
                 .catch(err => console.log('Error while establishing connection :('));
 
-            this.state.hubConnection.on('ReceiveMessage', (nick, receivedMessage) => {
-                console.log(nick, receivedMessage);
-                const text = `${nick}: ${receivedMessage}`;
-                const messages = this.state.messages.concat([text]);
-                this.setState({ messages });
+            this.state.hubConnection.on('ReceiveMessage', (receivedMessage, iduser) => {
+            this.setState({ newStatut: receivedMessage, newActivity: true, idSocket : iduser});
             });
         });
     };
@@ -83,25 +81,13 @@ export class FetchData extends Component {
         return (
             <div>
                 <br />
-                <input
-                    type="text"
-                    value={this.state.message}
-                    onChange={e => this.setState({ message: e.target.value })}
-                />
-
-                <button onClick={this.sendMessage}>Send</button>
-
-                <div>
-                    {this.state.messages.map((message, index) => (
-                        <span style={{ display: 'block' }} key={index}> {message} </span>
-                    ))}
-                </div>
-                <table className='table table-striped' aria-labelledby="tabelLabel">
+               
+                <table className='table table-striped table-borderless' aria-labelledby="tabelLabel">
                     <thead>
                         <tr>
-                            <th>User Name</th>
+                            <th>User name</th>
                             <th>Activity</th>
-                            <th>Actions</th>
+                            <th></th>
 
                         </tr>
                     </thead>
@@ -109,13 +95,25 @@ export class FetchData extends Component {
                         {this.state.allusers.map(user =>
                             <tr key={user.id}>
                                 <td>{user.userName}</td>
-                                <td></td>
+                                <td>{this.state.idSocket == user.id ?
+                                    <span className= "badge bg-info text-white">{this.state.newStatut}</span>
+                                    : <span className= "badge bg-info text-white">{user.activity}</span>}
+                                </td>
                                
                                 <td>
                                     {this.state.iduser == user.id ?
-                                       
-                                        <button onClick={this.sendMessage}>ON CALL</button>
+                                        
+                                        <button className= "btn btn-outline-success btn-sm" onClick={()=>this.sendMessage("ON CALL")}>ON CALL</button>
                                         : null}
+                                    {this.state.iduser == user.id ?
+
+                                        <button className="btn btn-outline-danger btn-sm" onClick={() => this.sendMessage("ON MEETING")}>ON MEETING</button>
+                                        : null}
+                                    {this.state.iduser == user.id ?
+
+                                        <button className="btn btn-outline-secondary btn-sm" onClick={() => this.sendMessage("ON BREAK")}>ON BREAK</button>
+                                        : null}
+
                    
                                     </td>
 
