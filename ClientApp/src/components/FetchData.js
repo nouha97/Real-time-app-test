@@ -10,18 +10,16 @@ export class FetchData extends Component {
             allusers: [],
             loading: true,
             iduser : '',
-           newStatut : false,
+            newStatut : '',
             message: '',
-           
             idSocket :'',
-            newActivity : '',
             hubConnection: null,
         };
     }
     sendMessage = async (activity) => {
         const token = await authService.getAccessToken();
         try {
-            await fetch('https://localhost:44347/users/api/ChangeStatut', {
+            await fetch(window.location.protocol + '/users/api/ChangeStatut', {
                 method: 'POST',
                 body: JSON.stringify({
                     ActivityS: activity,
@@ -46,13 +44,10 @@ export class FetchData extends Component {
 
     componentDidMount = () => {
         this.usersData();
-    
-
         const hubConnection = new HubConnectionBuilder()
-            .withUrl('https://localhost:44347/users/api/ChangeStatut')
+            .withUrl(window.location.protocol + '/users/api/ChangeStatut')
             .withAutomaticReconnect()
             .build();
-
 
         this.setState({ hubConnection }, () => {
             this.state.hubConnection
@@ -61,7 +56,7 @@ export class FetchData extends Component {
                 .catch(err => console.log('Error while establishing connection :('));
 
             this.state.hubConnection.on('ReceiveMessage', (receivedMessage, iduser) => {
-            this.setState({ newStatut: receivedMessage, newActivity: true, idSocket : iduser});
+            this.setState({ newStatut: receivedMessage, idSocket : iduser});
             });
         });
     };
@@ -72,7 +67,6 @@ export class FetchData extends Component {
             headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
-        console.log(data);
         this.setState({ allusers: data.users, loading: false, iduser: data.userId});
     }
 

@@ -11,8 +11,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TestProject.Data;
+using TestProject.Hubs;
 using TestProject.Models;
-using TestProject.Models.TestProject.Models;
+
 
 namespace TestProject.Controllers
 {
@@ -23,12 +24,12 @@ namespace TestProject.Controllers
     public class UsersController : ControllerBase
     {
        
-        private readonly ApplicationDbContext db;
+        private readonly ApplicationDbContext _db;
         private readonly ILogger<UsersController> _logger;
         protected readonly IHubContext<ActivityStatutHub> _messageHub;
         public UsersController(ApplicationDbContext db , ILogger<UsersController> logger , [NotNull] IHubContext<ActivityStatutHub> messageHub)
         {
-            this.db = db;
+            _db = db;
             _logger = logger;
             _messageHub = messageHub;
         }
@@ -36,37 +37,41 @@ namespace TestProject.Controllers
 
         [HttpPost]
         [Route("api/ChangeStatut")]
-
         public async Task SendToAll([FromBody] ActivityStatut a)
         {
+            // this function update the activity in database 
             saveStatus(a.ID, a.ActivityS);
+            //Clients methos calls a method on specific connected clients but I use "All" to specify the method on all connected clients
             await _messageHub.Clients.All.SendAsync("ReceiveMessage", a.ActivityS, a.ID);
         }
        
-       public void saveStatus(string id,string activity)
-        {
-            var user = db.Users.FirstOrDefault(item => item.Id == id);
-
-           
-            if (user != null)
-            {
-                
-                user.Activity = activity;
-
-                db.SaveChanges();
-            }
-        }
+     
 
         [HttpGet]
-
         public async Task<IActionResult> Get()
         {
-            IEnumerable <ApplicationUser> users = db.Users.Select(w => w);
+            // Getting all the users from db
+            IEnumerable <ApplicationUser> users = _db.Users.Select(w => w);
+            // Getting the ID of the connected user
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
            
             return Ok(new { users, userId });
            
 
+        }
+
+        public void saveStatus(string id, string activity)
+        {
+            var user = _db.Users.FirstOrDefault(item => item.Id == id);
+
+
+            if (user != null)
+            {
+                //updating the activity
+                user.Activity = activity;
+
+                _db.SaveChanges();
+            }
         }
     }
 }
